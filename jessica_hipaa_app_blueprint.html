@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HIPAA Health Insurance Web App — Architecture Blueprint</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+  :root {
+    --navy: #0D1B2A;
+    --teal: #1B7F79;
+    --teal-light: #2AAFA8;
+    --teal-pale: #E8F5F4;
+    --gold: #C8963E;
+    --gold-pale: #FDF5E8;
+    --slate: #4A5568;
+    --light: #F7F9FC;
+    --white: #FFFFFF;
+    --border: #DDE3EC;
+    --text: #1A202C;
+    --muted: #718096;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--light);
+    color: var(--text);
+    line-height: 1.6;
+  }
+
+  /* ── COVER PAGE ── */
+  .cover {
+    background: var(--navy);
+    color: white;
+    padding: 80px 60px;
+    min-height: 280px;
+    position: relative;
+    overflow: hidden;
+  }
+  .cover::before {
+    content: '';
+    position: absolute;
+    top: -80px; right: -80px;
+    width: 400px; height: 400px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(27,127,121,0.25) 0%, transparent 70%);
+  }
+  .cover-tag {
+    display: inline-block;
+    background: var(--teal);
+    color: white;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 5px 14px;
+    border-radius: 20px;
+    margin-bottom: 20px;
+  }
+  .cover h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 42px;
+    line-height: 1.2;
+    margin-bottom: 12px;
+    max-width: 600px;
+  }
+  .cover h1 em { color: var(--teal-light); font-style: italic; }
+  .cover-sub {
+    font-size: 15px;
+    color: rgba(255,255,255,0.65);
+    max-width: 500px;
+    margin-bottom: 32px;
+  }
+  .cover-meta {
+    display: flex;
+    gap: 32px;
+    flex-wrap: wrap;
+  }
+  .cover-meta-item { font-size: 13px; color: rgba(255,255,255,0.5); }
+  .cover-meta-item strong { display: block; color: white; font-size: 15px; margin-bottom: 2px; }
+
+  /* ── LAYOUT ── */
+  .container { max-width: 960px; margin: 0 auto; padding: 0 40px; }
+
+  /* ── SECTION ── */
+  .section {
+    padding: 48px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .section-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--teal);
+    margin-bottom: 8px;
+  }
+  .section-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 28px;
+    color: var(--navy);
+    margin-bottom: 12px;
+  }
+  .section-intro {
+    font-size: 15px;
+    color: var(--slate);
+    max-width: 680px;
+    margin-bottom: 32px;
+  }
+
+  /* ── ARCHITECTURE DIAGRAM ── */
+  .arch-diagram {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 40px;
+    margin-bottom: 24px;
+  }
+
+  .arch-layer {
+    margin-bottom: 8px;
+  }
+
+  .arch-layer-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 10px;
+    padding-left: 4px;
+  }
+
+  .arch-row {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 6px;
+    align-items: stretch;
+  }
+
+  .arch-box {
+    flex: 1;
+    background: var(--teal-pale);
+    border: 1.5px solid var(--teal-light);
+    border-radius: 10px;
+    padding: 14px 16px;
+    text-align: center;
+  }
+  .arch-box.gold {
+    background: var(--gold-pale);
+    border-color: var(--gold);
+  }
+  .arch-box.navy {
+    background: var(--navy);
+    border-color: var(--navy);
+    color: white;
+  }
+  .arch-box.slate {
+    background: #EEF2F7;
+    border-color: #C5CEDB;
+  }
+  .arch-box-icon { font-size: 20px; margin-bottom: 4px; }
+  .arch-box-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--navy);
+    margin-bottom: 3px;
+  }
+  .arch-box.navy .arch-box-title { color: white; }
+  .arch-box-sub {
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .arch-box.navy .arch-box-sub { color: rgba(255,255,255,0.6); }
+
+  .arch-arrow {
+    text-align: center;
+    color: var(--teal);
+    font-size: 20px;
+    margin: 4px 0;
+    letter-spacing: 2px;
+  }
+
+  .arch-divider {
+    border: none;
+    border-top: 1.5px dashed var(--border);
+    margin: 20px 0;
+  }
+
+  /* ── NOTE BOXES ── */
+  .note {
+    background: var(--gold-pale);
+    border-left: 4px solid var(--gold);
+    border-radius: 0 8px 8px 0;
+    padding: 14px 18px;
+    font-size: 14px;
+    color: var(--slate);
+    margin-top: 16px;
+  }
+  .note strong { color: var(--navy); }
+
+  .note-teal {
+    background: var(--teal-pale);
+    border-left-color: var(--teal);
+  }
+
+  /* ── MILESTONE TABLE ── */
+  .milestone-list { display: flex; flex-direction: column; gap: 16px; }
+  .milestone-card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 24px;
+    display: grid;
+    grid-template-columns: 48px 1fr auto;
+    gap: 16px;
+    align-items: start;
+  }
+  .milestone-num {
+    width: 48px; height: 48px;
+    background: var(--navy);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'DM Serif Display', serif;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+  .milestone-num.teal { background: var(--teal); }
+  .milestone-num.gold { background: var(--gold); }
+  .milestone-title { font-weight: 600; font-size: 15px; color: var(--navy); margin-bottom: 4px; }
+  .milestone-desc { font-size: 13px; color: var(--slate); line-height: 1.5; }
+  .milestone-deliverables { margin-top: 8px; }
+  .milestone-deliverables span {
+    display: inline-block;
+    background: var(--teal-pale);
+    color: var(--teal);
+    font-size: 11px;
+    font-weight: 500;
+    padding: 3px 10px;
+    border-radius: 20px;
+    margin: 2px 3px 2px 0;
+  }
+  .milestone-price {
+    text-align: right;
+    flex-shrink: 0;
+  }
+  .milestone-price .amount {
+    font-family: 'DM Serif Display', serif;
+    font-size: 22px;
+    color: var(--navy);
+  }
+  .milestone-price .days {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  /* ── TECH STACK ── */
+  .tech-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+  .tech-card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+  }
+  .tech-card-layer {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--teal);
+    margin-bottom: 6px;
+  }
+  .tech-card-name {
+    font-weight: 600;
+    font-size: 16px;
+    color: var(--navy);
+    margin-bottom: 6px;
+  }
+  .tech-card-why { font-size: 13px; color: var(--slate); line-height: 1.5; }
+
+  /* ── USER FLOW ── */
+  .flow-steps {
+    display: flex;
+    gap: 0;
+    align-items: stretch;
+    overflow-x: auto;
+    padding-bottom: 8px;
+  }
+  .flow-step {
+    flex: 1;
+    min-width: 130px;
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px 14px;
+    text-align: center;
+    position: relative;
+  }
+  .flow-step + .flow-step::before {
+    content: '→';
+    position: absolute;
+    left: -18px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--teal);
+    font-size: 18px;
+    font-weight: bold;
+    z-index: 1;
+  }
+  .flow-step + .flow-step { margin-left: 24px; }
+  .flow-step-num {
+    width: 28px; height: 28px;
+    background: var(--teal);
+    color: white;
+    border-radius: 50%;
+    font-size: 13px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 8px;
+  }
+  .flow-step-title { font-size: 13px; font-weight: 600; color: var(--navy); margin-bottom: 4px; }
+  .flow-step-sub { font-size: 11px; color: var(--muted); }
+
+  /* ── HIPAA COMPLIANCE ── */
+  .compliance-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+  .compliance-card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    gap: 14px;
+  }
+  .compliance-icon {
+    font-size: 24px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .compliance-title { font-weight: 600; font-size: 14px; color: var(--navy); margin-bottom: 4px; }
+  .compliance-desc { font-size: 13px; color: var(--slate); line-height: 1.5; }
+
+  /* ── ROYALTY BOX ── */
+  .royalty-box {
+    background: var(--navy);
+    color: white;
+    border-radius: 16px;
+    padding: 32px 36px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+    align-items: center;
+  }
+  .royalty-box h3 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 24px;
+    margin-bottom: 10px;
+  }
+  .royalty-box p { font-size: 14px; color: rgba(255,255,255,0.7); line-height: 1.6; }
+  .royalty-stats { display: flex; flex-direction: column; gap: 16px; }
+  .royalty-stat { background: rgba(255,255,255,0.08); border-radius: 10px; padding: 16px 20px; }
+  .royalty-stat-label { font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: rgba(255,255,255,0.5); margin-bottom: 4px; }
+  .royalty-stat-value { font-family: 'DM Serif Display', serif; font-size: 28px; color: var(--teal-light); }
+  .royalty-stat-note { font-size: 12px; color: rgba(255,255,255,0.5); margin-top: 2px; }
+
+  /* ── TOTAL BAR ── */
+  .total-bar {
+    background: var(--teal);
+    color: white;
+    border-radius: 12px;
+    padding: 20px 28px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 24px;
+  }
+  .total-bar-label { font-size: 14px; font-weight: 500; opacity: 0.85; }
+  .total-bar-amount { font-family: 'DM Serif Display', serif; font-size: 32px; }
+  .total-bar-time { font-size: 13px; opacity: 0.7; text-align: right; margin-top: 2px; }
+
+  /* ── FOOTER ── */
+  .footer {
+    background: var(--navy);
+    color: rgba(255,255,255,0.5);
+    text-align: center;
+    padding: 24px;
+    font-size: 12px;
+    margin-top: 0;
+  }
+  .footer strong { color: white; }
+
+  @media print {
+    body { background: white; }
+    .cover { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+</style>
+</head>
+<body>
+
+<!-- COVER -->
+<div class="cover">
+  <div class="container">
+    <div class="cover-tag">Confidential — Client Blueprint</div>
+    <h1>HIPAA Health Insurance<br><em>Web Application</em></h1>
+    <p class="cover-sub">Architecture blueprint, user flow, tech stack, milestone plan, and investment overview — prepared for discussion.</p>
+    <div class="cover-meta">
+      <div class="cover-meta-item"><strong>Client</strong>Jessica</div>
+      <div class="cover-meta-item"><strong>Prepared By</strong>Cory Schmaltz / Rangeview Marketing</div>
+      <div class="cover-meta-item"><strong>Build Type</strong>Custom Web Application (No AI)</div>
+      <div class="cover-meta-item"><strong>Timeline</strong>~5–6 Months</div>
+    </div>
+  </div>
+</div>
+
+<!-- WHAT WE'RE BUILDING -->
+<div class="container">
+  <div class="section">
+    <div class="section-label">Overview</div>
+    <div class="section-title">What We're Building</div>
+    <p class="section-intro">A secure, HIPAA-aware web application that takes Jessica's years of health insurance expertise and packages it into a guided, trustworthy tool that real users can rely on to navigate health insurance decisions.</p>
+
+    <div class="arch-diagram">
+      <div class="arch-layer-label">The Big Picture — How It All Connects</div>
+
+      <div class="arch-layer">
+        <div class="arch-layer-label">👤 Who Uses It</div>
+        <div class="arch-row">
+          <div class="arch-box"><div class="arch-box-icon">🧑‍💼</div><div class="arch-box-title">Individuals</div><div class="arch-box-sub">Navigating personal plans</div></div>
+          <div class="arch-box"><div class="arch-box-icon">🏢</div><div class="arch-box-title">Businesses</div><div class="arch-box-sub">Managing employee benefits</div></div>
+          <div class="arch-box"><div class="arch-box-icon">🏥</div><div class="arch-box-title">Providers</div><div class="arch-box-sub">Understanding coverage rules</div></div>
+        </div>
+      </div>
+
+      <div class="arch-arrow">↓</div>
+
+      <div class="arch-layer">
+        <div class="arch-layer-label">🖥️ Frontend — What Users See (React.js + Tailwind)</div>
+        <div class="arch-row">
+          <div class="arch-box gold"><div class="arch-box-icon">🔐</div><div class="arch-box-title">Login / Auth</div><div class="arch-box-sub">Secure MFA login</div></div>
+          <div class="arch-box gold"><div class="arch-box-icon">📋</div><div class="arch-box-title">Assessment Wizard</div><div class="arch-box-sub">Step-by-step guided questions</div></div>
+          <div class="arch-box gold"><div class="arch-box-icon">📊</div><div class="arch-box-title">Results Dashboard</div><div class="arch-box-sub">Trusted output + recommendations</div></div>
+          <div class="arch-box gold"><div class="arch-box-icon">📁</div><div class="arch-box-title">User Profile</div><div class="arch-box-sub">History, saved results</div></div>
+        </div>
+      </div>
+
+      <div class="arch-arrow">↕ API Calls (HTTPS Encrypted)</div>
+
+      <div class="arch-layer">
+        <div class="arch-layer-label">⚙️ Backend — The Brain (Python / FastAPI)</div>
+        <div class="arch-row">
+          <div class="arch-box"><div class="arch-box-icon">🧠</div><div class="arch-box-title">Decision Engine</div><div class="arch-box-sub">Jessica's framework as logic rules</div></div>
+          <div class="arch-box"><div class="arch-box-icon">👥</div><div class="arch-box-title">User Management</div><div class="arch-box-sub">Auth, roles, permissions</div></div>
+          <div class="arch-box"><div class="arch-box-icon">📝</div><div class="arch-box-title">Audit Logger</div><div class="arch-box-sub">HIPAA-required activity logs</div></div>
+          <div class="arch-box"><div class="arch-box-icon">🔌</div><div class="arch-box-title">API Layer</div><div class="arch-box-sub">Connects frontend to data</div></div>
+        </div>
+      </div>
+
+      <div class="arch-arrow">↕ Encrypted Queries</div>
+
+      <div class="arch-layer">
+        <div class="arch-layer-label">🗄️ Data Layer (PostgreSQL + AWS)</div>
+        <div class="arch-row">
+          <div class="arch-box slate"><div class="arch-box-icon">🗃️</div><div class="arch-box-title">PostgreSQL Database</div><div class="arch-box-sub">Users, assessments, outputs</div></div>
+          <div class="arch-box slate"><div class="arch-box-icon">☁️</div><div class="arch-box-title">AWS (HIPAA-Eligible)</div><div class="arch-box-sub">Encrypted hosting + storage</div></div>
+          <div class="arch-box slate"><div class="arch-box-icon">🔑</div><div class="arch-box-title">Auth0 / Cognito</div><div class="arch-box-sub">Secure identity management</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="note">
+      <strong>📌 Why custom, not AI?</strong> Jessica's framework involves nuanced, specific rules that need to produce consistent, auditable, legally defensible outputs. A custom rule-based decision engine gives full control over every output — something an AI model cannot guarantee. Every answer the system gives can be traced back to an exact rule Jessica approved.
+    </div>
+  </div>
+
+  <!-- USER FLOW -->
+  <div class="section">
+    <div class="section-label">User Experience</div>
+    <div class="section-title">What the User Journey Looks Like</div>
+    <p class="section-intro">From the moment someone lands on the app to the moment they get a trusted answer — here's every step.</p>
+
+    <div class="flow-steps">
+      <div class="flow-step">
+        <div class="flow-step-num">1</div>
+        <div class="flow-step-title">Landing Page</div>
+        <div class="flow-step-sub">User discovers the app, understands the value</div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-step-num">2</div>
+        <div class="flow-step-title">Sign Up / Login</div>
+        <div class="flow-step-sub">Secure account creation with MFA</div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-step-num">3</div>
+        <div class="flow-step-title">Profile Setup</div>
+        <div class="flow-step-sub">User type, situation, goals</div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-step-num">4</div>
+        <div class="flow-step-title">Assessment Wizard</div>
+        <div class="flow-step-sub">Step-by-step guided questions based on Jessica's framework</div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-step-num">5</div>
+        <div class="flow-step-title">Decision Engine</div>
+        <div class="flow-step-sub">Backend applies rules, generates output</div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-step-num">6</div>
+        <div class="flow-step-title">Results</div>
+        <div class="flow-step-sub">Clear, trusted recommendations with explanations</div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-step-num">7</div>
+        <div class="flow-step-title">Save / Export</div>
+        <div class="flow-step-sub">User saves or exports their results</div>
+      </div>
+    </div>
+
+    <div class="note note-teal" style="margin-top:20px;">
+      <strong>💡 The Assessment Wizard is the core of the product.</strong> This is where Jessica's years of expertise live — translated into a guided sequence of smart questions that lead the user to a reliable answer. Building this correctly is the most important part of the entire project.
+    </div>
+  </div>
+
+  <!-- HIPAA COMPLIANCE -->
+  <div class="section">
+    <div class="section-label">Security & Compliance</div>
+    <div class="section-title">How We Handle HIPAA</div>
+    <p class="section-intro">HIPAA compliance isn't a feature — it's infrastructure. These are the non-negotiable pieces built into the architecture from day one, not added later.</p>
+
+    <div class="compliance-grid">
+      <div class="compliance-card">
+        <div class="compliance-icon">🔒</div>
+        <div>
+          <div class="compliance-title">Encryption at Rest & In Transit</div>
+          <div class="compliance-desc">All data stored in the database is encrypted. All data moving between the user's browser and the server travels over HTTPS with TLS. No plaintext data anywhere in the system.</div>
+        </div>
+      </div>
+      <div class="compliance-card">
+        <div class="compliance-icon">📋</div>
+        <div>
+          <div class="compliance-title">Audit Logs</div>
+          <div class="compliance-desc">Every action a user takes — login, assessment started, result viewed, data changed — is recorded in an immutable audit log. HIPAA requires this. It also protects Jessica legally.</div>
+        </div>
+      </div>
+      <div class="compliance-card">
+        <div class="compliance-icon">🏥</div>
+        <div>
+          <div class="compliance-title">BAA with AWS</div>
+          <div class="compliance-desc">AWS offers HIPAA-eligible services and will sign a Business Associate Agreement (BAA). This is a legal requirement if the app touches Protected Health Information (PHI). We set this up before writing a single line of code.</div>
+        </div>
+      </div>
+      <div class="compliance-card">
+        <div class="compliance-icon">👤</div>
+        <div>
+          <div class="compliance-title">Access Controls & MFA</div>
+          <div class="compliance-desc">Users only see their own data. Admins have separate, controlled access. Multi-factor authentication required for all accounts. Role-based permissions built into the backend.</div>
+        </div>
+      </div>
+      <div class="compliance-card">
+        <div class="compliance-icon">🔐</div>
+        <div>
+          <div class="compliance-title">Secure Auth (Auth0 / Cognito)</div>
+          <div class="compliance-desc">We use an industry-standard identity provider — not a home-built login system. These services handle token management, session expiry, and brute-force protection out of the box.</div>
+        </div>
+      </div>
+      <div class="compliance-card">
+        <div class="compliance-icon">⚖️</div>
+        <div>
+          <div class="compliance-title">HIPAA Attorney Review Recommended</div>
+          <div class="compliance-desc">We build to technical HIPAA standards, but Jessica should have a HIPAA attorney review the final product and policies (privacy policy, terms of service, BAA templates) before launch. This is her legal protection.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TECH STACK -->
+  <div class="section">
+    <div class="section-label">Technology</div>
+    <div class="section-title">The Tech Stack — And Why</div>
+    <p class="section-intro">Every choice here is deliberate — built for security, scalability, and maintainability. Nothing exotic, nothing that creates vendor lock-in.</p>
+
+    <div class="tech-grid">
+      <div class="tech-card">
+        <div class="tech-card-layer">Frontend</div>
+        <div class="tech-card-name">React.js + Tailwind CSS</div>
+        <div class="tech-card-why">React is the industry standard for web apps. It handles complex, multi-step flows (like the assessment wizard) cleanly and is easy to maintain and expand. Tailwind keeps the UI consistent and fast to build.</div>
+      </div>
+      <div class="tech-card">
+        <div class="tech-card-layer">Backend</div>
+        <div class="tech-card-name">Python / FastAPI</div>
+        <div class="tech-card-why">Python is dominant in healthcare-adjacent tech. FastAPI is fast, modern, and has strong data validation built in — critical when you need to trust the inputs going into Jessica's decision engine.</div>
+      </div>
+      <div class="tech-card">
+        <div class="tech-card-layer">Database</div>
+        <div class="tech-card-name">PostgreSQL</div>
+        <div class="tech-card-why">Reliable, battle-tested, and handles the relational data this app needs — users, assessments, results, audit logs — all linked together correctly. Supports encryption at rest.</div>
+      </div>
+      <div class="tech-card">
+        <div class="tech-card-layer">Cloud Hosting</div>
+        <div class="tech-card-name">Amazon Web Services (AWS)</div>
+        <div class="tech-card-why">AWS is one of the few cloud providers that offers HIPAA-eligible infrastructure and will sign a BAA. This is not optional — it's a compliance requirement. Also scales easily as user volume grows.</div>
+      </div>
+      <div class="tech-card">
+        <div class="tech-card-layer">Authentication</div>
+        <div class="tech-card-name">Auth0 or AWS Cognito</div>
+        <div class="tech-card-why">Battle-tested identity management. Handles MFA, secure sessions, password resets, and role-based access. Far safer than building a login system from scratch.</div>
+      </div>
+      <div class="tech-card">
+        <div class="tech-card-layer">Payments (if needed)</div>
+        <div class="tech-card-name">Stripe</div>
+        <div class="tech-card-why">If this becomes a SaaS product with subscriptions, Stripe handles billing, invoicing, and subscription management cleanly. Integrates with the backend in a few days of work.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MILESTONES -->
+  <div class="section">
+    <div class="section-label">Project Plan</div>
+    <div class="section-title">Milestones & Investment</div>
+    <p class="section-intro">The project is broken into six clear phases. Nothing moves to the next milestone until you've approved the current one. You know exactly what you're getting before anything is built.</p>
+
+    <div class="milestone-list">
+
+      <div class="milestone-card">
+        <div class="milestone-num">1</div>
+        <div>
+          <div class="milestone-title">Discovery & Architecture</div>
+          <div class="milestone-desc">Deep-dive sessions to fully document Jessica's framework as rules and logic. Wireframes of every screen. Full data model. HIPAA compliance plan reviewed and agreed upon. This phase is what makes the rest of the build accurate — no guessing, no rework.</div>
+          <div class="milestone-deliverables">
+            <span>Requirements Doc</span><span>Wireframes</span><span>Data Model</span><span>HIPAA Plan</span>
+          </div>
+        </div>
+        <div class="milestone-price"><div class="amount">$3,500</div><div class="days">Est. 1–2 weeks</div></div>
+      </div>
+
+      <div class="milestone-card">
+        <div class="milestone-num teal">2</div>
+        <div>
+          <div class="milestone-title">Backend Foundation</div>
+          <div class="milestone-desc">Database setup, user authentication, API structure, admin panel for Jessica to manage content and rules. AWS environment configured with HIPAA-eligible services and BAA in place. The invisible infrastructure that everything else runs on.</div>
+          <div class="milestone-deliverables">
+            <span>Database Live</span><span>Auth System</span><span>API Structure</span><span>Admin Panel</span><span>AWS + BAA</span>
+          </div>
+        </div>
+        <div class="milestone-price"><div class="amount">$6,000</div><div class="days">Est. 2–3 weeks</div></div>
+      </div>
+
+      <div class="milestone-card">
+        <div class="milestone-num teal">3</div>
+        <div>
+          <div class="milestone-title">Core App Logic — Decision Engine</div>
+          <div class="milestone-desc">This is the heart of the product. Jessica's framework gets translated into a structured decision engine — the rules that take user inputs and produce reliable, trusted outputs. Every logic path is tested and approved by Jessica before moving on.</div>
+          <div class="milestone-deliverables">
+            <span>Decision Engine</span><span>Rule Library</span><span>Output Templates</span><span>Logic Testing</span>
+          </div>
+        </div>
+        <div class="milestone-price"><div class="amount">$12,000</div><div class="days">Est. 3–4 weeks</div></div>
+      </div>
+
+      <div class="milestone-card">
+        <div class="milestone-num gold">4</div>
+        <div>
+          <div class="milestone-title">Frontend Build</div>
+          <div class="milestone-desc">The full user interface — landing page, login, assessment wizard, results dashboard, user profile, and saved history. Built to feel trustworthy and professional. Every screen connected to the backend and tested end-to-end.</div>
+          <div class="milestone-deliverables">
+            <span>All Screens</span><span>Assessment Wizard</span><span>Results Dashboard</span><span>Mobile Responsive</span>
+          </div>
+        </div>
+        <div class="milestone-price"><div class="amount">$6,500</div><div class="days">Est. 3–4 weeks</div></div>
+      </div>
+
+      <div class="milestone-card">
+        <div class="milestone-num gold">5</div>
+        <div>
+          <div class="milestone-title">HIPAA Compliance Layer</div>
+          <div class="milestone-desc">Audit logging implemented and verified, encryption confirmed at rest and in transit, security review of the full codebase, BAA documentation finalized. This milestone is what makes the app legally deployable in a health insurance context.</div>
+          <div class="milestone-deliverables">
+            <span>Audit Logs</span><span>Encryption Verified</span><span>Security Review</span><span>BAA Docs</span>
+          </div>
+        </div>
+        <div class="milestone-price"><div class="amount">$6,000</div><div class="days">Est. 1–2 weeks</div></div>
+      </div>
+
+      <div class="milestone-card">
+        <div class="milestone-num" style="background:#2D3748;">6</div>
+        <div>
+          <div class="milestone-title">Testing, Launch & Documentation</div>
+          <div class="milestone-desc">Full QA across all user flows, browsers, and devices. Staging environment for final review. Production deployment. Full documentation handed to Jessica so she (or any future developer) understands exactly how the system works.</div>
+          <div class="milestone-deliverables">
+            <span>QA Testing</span><span>Staging Review</span><span>Production Launch</span><span>Documentation</span>
+          </div>
+        </div>
+        <div class="milestone-price"><div class="amount">$4,000</div><div class="days">Est. 1–2 weeks</div></div>
+      </div>
+
+    </div>
+
+    <div class="total-bar">
+      <div>
+        <div class="total-bar-label">Total Project Investment</div>
+      </div>
+      <div style="text-align:right;">
+        <div class="total-bar-amount">$38,000</div>
+        <div class="total-bar-time">~5–6 months end to end</div>
+      </div>
+    </div>
+
+    <div class="note" style="margin-top:16px;">
+      <strong>📌 Note on the quoted range:</strong> Jessica has received quotes from $30,000 to $130,000. This proposal sits at the competitive end of that range because the build is scoped precisely to what's needed — not padded with agency overhead or vague retainers. The milestone structure means she's never writing a large check without knowing exactly what she's getting in return.
+    </div>
+  </div>
+
+  <!-- ROYALTY STRUCTURE -->
+  <div class="section">
+    <div class="section-label">Business Model</div>
+    <div class="section-title">The Royalty Structure — Backend Upside</div>
+    <p class="section-intro">To keep the upfront investment competitive while fairly compensating for the long-term value of the build, we can structure a revenue share agreement alongside a reduced upfront fee.</p>
+
+    <div class="royalty-box">
+      <div>
+        <h3>Reduced upfront.<br>Share in the success.</h3>
+        <p>If Jessica believes this product will generate significant recurring revenue, we can reduce the upfront project fee in exchange for a percentage of monthly gross revenue. This aligns incentives — we both win when the product wins.</p>
+        <p style="margin-top:12px;">A revenue share cap ensures it ends once the discounted amount has been recovered, protecting both parties. This arrangement should be drafted by a lawyer given the existing NDA.</p>
+      </div>
+      <div class="royalty-stats">
+        <div class="royalty-stat">
+          <div class="royalty-stat-label">Revenue Share Range</div>
+          <div class="royalty-stat-value">3–8%</div>
+          <div class="royalty-stat-note">of monthly gross revenue</div>
+        </div>
+        <div class="royalty-stat">
+          <div class="royalty-stat-label">Cap Structure</div>
+          <div class="royalty-stat-value">2× discount</div>
+          <div class="royalty-stat-note">royalties end when recovered</div>
+        </div>
+        <div class="royalty-stat">
+          <div class="royalty-stat-label">Easy Entry Point</div>
+          <div class="royalty-stat-value">$3,500</div>
+          <div class="royalty-stat-note">Discovery milestone only to start</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NEXT STEPS -->
+  <div class="section" style="border-bottom:none;">
+    <div class="section-label">Next Steps</div>
+    <div class="section-title">How We Move Forward</div>
+    <p class="section-intro">Before a final scope and price can be confirmed, a few key questions need to be answered. These determine the complexity of the build.</p>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+      <div class="compliance-card">
+        <div class="compliance-icon">❓</div>
+        <div>
+          <div class="compliance-title">Who are the end users?</div>
+          <div class="compliance-desc">Individuals, businesses, or healthcare providers? This shapes the entire UX and logic structure.</div>
+        </div>
+      </div>
+      <div class="compliance-card">
+        <div class="compliance-icon">❓</div>
+        <div>
+          <div class="compliance-title">Is the framework documented?</div>
+          <div class="compliance-desc">Does Jessica's framework exist in written form, or does it need to be extracted through working sessions first?</div>
+        </div>
+      </div>
+      <div class="compliance-card">
+        <div class="compliance-icon">❓</div>
+        <div>
+          <div class="compliance-title">Does it handle actual PHI?</div>
+          <div class="compliance-desc">Or does it help users understand their coverage without storing protected health information? This determines compliance scope.</div>
+        </div>
+      </div>
+      <div class="compliance-card">
+        <div class="compliance-icon">❓</div>
+        <div>
+          <div class="compliance-title">What's the business model?</div>
+          <div class="compliance-desc">SaaS subscription, one-time access, or B2B licensing? This determines whether payment processing needs to be built in.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="note note-teal" style="margin-top:24px; font-size:15px;">
+      <strong>Recommended first step:</strong> Approve Milestone 1 — Discovery & Architecture ($3,500). This is a low-risk starting point that gives Jessica a complete blueprint, a documented version of her framework, and a full technical plan before committing to the full build. At the end of Milestone 1, she has everything she needs to move forward — or get a second opinion with something concrete in hand.
+    </div>
+  </div>
+
+</div>
+
+<div class="footer">
+  <strong>Prepared by Cory Schmaltz — Rangeview Marketing</strong> &nbsp;|&nbsp; cory@rangeviewmarketing.com &nbsp;|&nbsp; +1 (720) 308-6841 &nbsp;|&nbsp; Confidential
+</div>
+
+</body>
+</html>
