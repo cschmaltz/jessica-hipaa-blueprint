@@ -1,1 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Your HIPAA Health Insurance Web App — Blueprint</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap');
 
+  :root {
+    --navy: #0D1B2A;
+    --teal: #1B7F79;
+    --teal-light: #2AAFA8;
+    --teal-pale: #E8F5F4;
+    --gold: #C8963E;
+    --gold-pale: #FDF5E8;
+    --slate: #4A5568;
+    --light: #F7F9FC;
+    --white: #FFFFFF;
+    --border: #DDE3EC;
+    --text: #1A202C;
+    --muted: #718096;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--light);
+    color: var(--text);
+    line-height: 1.6;
+  }
+
+  .cover {
+    background: var(--navy);
+    color: white;
+    padding: 80px 60px;
+    min-height: 300px;
+    position: relative;
+    overflow: hidden;
+  }
+  .cover::before {
+    content: '';
+    position: absolute;
+    top: -80px; right: -80px;
+    width: 400px; height: 400px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(27,127,121,0.25) 0%, transparent 70%);
+  }
+  .cover-tag {
+    display: inline-block;
+    background: var(--teal);
+    color: white;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 5px 14px;
+    border-radius: 20px;
+    margin-bottom: 20px;
+  }
+  .cover h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 42px;
+    line-height: 1.2;
+    margin-bottom: 16px;
+    max-width: 640px;
+  }
+  .cover h1 em { color: var(--teal-light); font-style: italic; }
+  .cover-sub {
+    font-size: 16px;
+    color: rgba(255,255,255,0.75);
+    max-width: 560px;
+    margin-bottom: 32px;
+    line-height: 1.7;
+  }
+  .cover-meta { display: flex; gap: 32px; flex-wrap: wrap; }
+  .cover-meta-item { font-size: 13px; color: rgba(255,255,255,0.5); }
+  .cover-meta-item strong { display: block; color: white; font-size: 15px; margin-bottom: 2px; }
+
+  .container { max-width: 960px; margin: 0 auto; padding: 0 40px; }
+
+  .section { padding: 48px 0; border-bottom: 1px solid var(--border); }
+  .section-label { font-size: 11px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: var(--teal); margin-bottom: 8px; }
+  .section-title { font-family: 'DM Serif Display', serif; font-size: 28px; color: var(--navy); margin-bottom: 12px; }
+  .section-intro { font-size: 15px; color: var(--slate); max-width: 700px; margin-bottom: 32px; line-height: 1.7; }
+
+  .value-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 32px; }
+  .value-card { background: white; border: 1px solid var(--border); border-radius: 12px; padding: 24px 20px; text-align: center; }
+  .value-icon { font-size: 32px; margin-bottom: 12px; }
+  .value-title { font-weight: 600; font-size: 15px; color: var(--navy); margin-bottom: 6px; }
+  .value-desc { font-size: 13px; color: var(--slate); line-height: 1.5; }
+
+  .arch-diagram { background: white; border: 1px solid var(--border); border-radius: 16px; padding: 40px; margin-bottom: 24px; }
+  .arch-layer { margin-bottom: 8px; }
+  .arch-layer-label { font-size: 11px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; padding-left: 4px; }
+  .arch-row { display: flex; gap: 12px; margin-bottom: 6px; align-items: stretch; }
+  .arch-box { flex: 1; background: var(--teal-pale); border: 1.5px solid var(--teal-light); border-radius: 10px; padding: 14px 16px; text-align: center; }
+  .arch-box.gold { background: var(--gold-pale); border-color: var(--gold); }
+  .arch-box.slate { background: #EEF2F7; border-color: #C5CEDB; }
+  .arch-box-icon { font-size: 20px; margin-bottom: 4px; }
+  .arch-box-title { font-size: 13px; font-weight: 600; color: var(--navy); margin-bottom: 3px; }
+  .arch-box-sub { font-size: 11px; color: var(--muted); }
+  .arch-arrow { text-align: center; color: var(--teal); font-size: 20px; margin: 4px 0; }
+
+  .note { background: var(--gold-pale); border-left: 4px solid var(--gold); border-radius: 0 8px 8px 0; padding: 14px 18px; font-size: 14px; color: var(--slate); margin-top: 16px; line-height: 1.6; }
+  .note strong { color: var(--navy); }
+  .note-teal { background: var(--teal-pale); border-left-color: var(--teal); }
+
+  .flow-steps { display: flex; gap: 0; align-items: stretch; overflow-x: auto; padding-bottom: 8px; }
+  .flow-step { flex: 1; min-width: 130px; background: white; border: 1px solid var(--border); border-radius: 12px; padding: 18px 14px; text-align: center; position: relative; }
+  .flow-step + .flow-step::before { content: '→'; position: absolute; left: -18px; top: 50%; transform: translateY(-50%); color: var(--teal); font-size: 18px; font-weight: bold; z-index: 1; }
+  .flow-step + .flow-step { margin-left: 24px; }
+  .flow-step-num { width: 28px; height: 28px; background: var(--teal); color: white; border-radius: 50%; font-size: 13px; font-weight: 600; display: flex; align-items: center; justify-content: center; margin: 0 auto 8px; }
+  .flow-step-title { font-size: 13px; font-weight: 600; color: var(--navy); margin-bottom: 4px; }
+  .flow-step-sub { font-size: 11px; color: var(--muted); }
+
+  .compliance-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+  .compliance-card { background: white; border: 1px solid var(--border); border-radius: 12px; padding: 20px; display: flex; gap: 14px; }
+  .compliance-icon { font-size: 24px; flex-shrink: 0; margin-top: 2px; }
+  .compliance-title { font-weight: 600; font-size: 14px; color: var(--navy); margin-bottom: 4px; }
+  .compliance-desc { font-size: 13px; color: var(--slate); line-height: 1.5; }
+
+  .tech-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .tech-card { background: white; border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
+  .tech-card-layer { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--teal); margin-bottom: 6px; }
+  .tech-card-name { font-weight: 600; font-size: 16px; color: var(--navy); margin-bottom: 6px; }
+  .tech-card-why { font-size: 13px; color: var(--slate); line-height: 1.5; }
+
+  .milestone-list { display: flex; flex-direction: column; gap: 16px; }
+  .milestone-card { background: white; border: 1px solid var(--border); border-radius: 12px; padding: 20px 24px; display: grid; grid-template-columns: 48px 1fr auto; gap: 16px; align-items: start; }
+  .milestone-num { width: 48px; height: 48px; background: var(--navy); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'DM Serif Display', serif; font-size: 20px; flex-shrink: 0; }
+  .milestone-num.teal { background: var(--teal); }
+  .milestone-num.gold { background: var(--gold); }
+  .milestone-num.dark { background: #2D3748; }
+  .milestone-title { font-weight: 600; font-size: 15px; color: var(--navy); margin-bottom: 4px; }
+  .milestone-desc { font-size: 13px; color: var(--slate); line-height: 1.5; }
+  .milestone-deliverables { margin-top: 8px; }
+  .milestone-deliverables span { display: inline-block; background: var(--teal-pale); color: var(--teal); font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: 20px; margin: 2px 3px 2px 0; }
+  .milestone-price { text-align: right; flex-shrink: 0; }
+  .milestone-price .amount { font-family: 'DM Serif Display', serif; font-size: 22px; color: var(--navy); }
+  .milestone-price .days { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+  .total-bar { background: var(--teal); color: white; border-radius: 12px; padding: 20px 28px; display: flex; justify-content: space-between; align-items: center; margin-top: 24px; }
+  .total-bar-label { font-size: 14px; font-weight: 500; opacity: 0.85; }
+  .total-bar-amount { font-family: 'DM Serif Display', serif; font-size: 32px; }
+  .total-bar-time { font-size: 13px; opacity: 0.7; text-align: right; margin-top: 2px; }
+
+  .royalty-box { background: var(--navy); color: white; border-radius: 16px; padding: 32px 36px; display: grid; grid-template-columns: 1fr 1fr; gap: 32px; align-items: center; }
+  .royalty-box h3 { font-family: 'DM Serif Display', serif; font-size: 24px; margin-bottom: 10px; }
+  .royalty-box p { font-size: 14px; color: rgba(255,255,255,0.7); line-height: 1.6; }
+  .royalty-stats { display: flex; flex-direction: column; gap: 16px; }
+  .royalty-stat { background: rgba(255,255,255,0.08); border-radius: 10px; padding: 16px 20px; }
+  .royalty-stat-label { font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: rgba(255,255,255,0.5); margin-bottom: 4px; }
+  .royalty-stat-value { font-family: 'DM Serif Display', serif; font-size: 28px; color: var(--teal-light); }
+  .royalty-stat-note { font-size: 12px; color: rgba(255,255,255,0.5); margin-top: 2px; }
+
+  .footer { background: var(--navy); color: rgba(255,255,255,0.5); text-align: center; padding: 24px; font-size: 12px; }
+  .footer strong { color: white; }
+
+  @media print {
+    body { background: white; }
+    .cover { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <div class="container">
+    <div class="cover-tag">Prepared For You — Confidential</div>
+    <h1>Your Health Insurance Expertise,<br><em>Built Into a Product.</em></h1>
+    <p class="cover-sub">You've spent years developing a framework that helps people navigate health insurance with confidence. This blueprint shows exactly how we turn that expertise into a secure, trustworthy web application that works for you around the clock.</p>
+    <div class="cover-meta">
+      <div class="cover-meta-item"><strong>Prepared For</strong>Jessica</div>
+      <div class="cover-meta-item"><strong>Prepared By</strong>Cory Schmaltz / Rangeview Marketing</div>
+      <div class="cover-meta-item"><strong>Build Type</strong>Custom Web Application</div>
+      <div class="cover-meta-item"><strong>Timeline</strong>~3–6 Months</div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+
+  <div class="section">
+    <div class="section-label">The Opportunity</div>
+    <div class="section-title">Your Knowledge Has Value Beyond the Hours You Can Work</div>
+    <p class="section-intro">Right now your expertise only reaches people when you're personally involved. A web application changes that — it takes the framework you've built over years and makes it available to thousands of people simultaneously, generating value for them and income for you without adding hours to your day.</p>
+
+    <div class="value-grid">
+      <div class="value-card">
+        <div class="value-icon">🔁</div>
+        <div class="value-title">Scalable Income</div>
+        <div class="value-desc">Your framework runs 24/7 without you. Every user who gets value from it is revenue you didn't have to trade time for.</div>
+      </div>
+      <div class="value-card">
+        <div class="value-icon">🛡️</div>
+        <div class="value-title">Your Framework, Protected</div>
+        <div class="value-desc">Built custom — not on a template or AI. Your logic is proprietary code that belongs entirely to you and produces consistent, auditable outputs.</div>
+      </div>
+      <div class="value-card">
+        <div class="value-icon">🤝</div>
+        <div class="value-title">Trust Built In</div>
+        <div class="value-desc">HIPAA-compliant infrastructure from day one means your users can trust the system with sensitive information — and trust the answers it gives them.</div>
+      </div>
+    </div>
+
+    <div class="note note-teal">
+      <strong>💡 Why custom and not AI?</strong> Your framework involves specific, nuanced rules that need to produce consistent, legally defensible outputs every single time. A custom rule-based decision engine means every answer your app gives can be traced back to an exact rule you approved — something an AI model simply cannot guarantee. Your expertise stays yours.
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">Architecture</div>
+    <div class="section-title">How Your App Is Structured</div>
+    <p class="section-intro">Here's the full picture of how everything connects — from the moment a user lands on your app to the moment they get a trusted answer powered entirely by your expertise.</p>
+
+    <div class="arch-diagram">
+      <div class="arch-layer-label">The Big Picture — How It All Connects</div>
+
+      <div class="arch-layer">
+        <div class="arch-layer-label">👤 Your Users</div>
+        <div class="arch-row">
+          <div class="arch-box"><div class="arch-box-icon">🧑‍💼</div><div class="arch-box-title">Individuals</div><div class="arch-box-sub">Navigating their own plans</div></div>
+          <div class="arch-box"><div class="arch-box-icon">🏢</div><div class="arch-box-title">Businesses</div><div class="arch-box-sub">Managing employee benefits</div></div>
+          <div class="arch-box"><div class="arch-box-icon">🏥</div><div class="arch-box-title">Providers</div><div class="arch-box-sub">Understanding coverage rules</div></div>
+        </div>
+      </div>
+
+      <div class="arch-arrow">↓</div>
+
+      <div class="arch-layer">
+        <div class="arch-layer-label">🖥️ What Your Users See — Frontend (React.js + Tailwind)</div>
+        <div class="arch-row">
+          <div class="arch-box gold"><div class="arch-box-icon">🔐</div><div class="arch-box-title">Secure Login</div><div class="arch-box-sub">MFA-protected accounts</div></div>
+          <div class="arch-box gold"><div class="arch-box-icon">📋</div><div class="arch-box-title">Guided Assessment</div><div class="arch-box-sub">Your framework as smart questions</div></div>
+          <div class="arch-box gold"><div class="arch-box-icon">📊</div><div class="arch-box-title">Results Dashboard</div><div class="arch-box-sub">Clear, trusted recommendations</div></div>
+          <div class="arch-box gold"><div class="arch-box-icon">📁</div><div class="arch-box-title">Your Profile</div><div class="arch-box-sub">Saved history and past results</div></div>
+        </div>
+      </div>
+
+      <div class="arch-arrow">↕ Encrypted Connection (HTTPS)</div>
+
+      <div class="arch-layer">
+        <div class="arch-layer-label">⚙️ The Engine Room — Backend (Python / FastAPI)</div>
+        <div class="arch-row">
+          <div class="arch-box"><div class="arch-box-icon">🧠</div><div class="arch-box-title">Your Decision Engine</div><div class="arch-box-sub">Your expertise as coded logic</div></div>
+          <div class="arch-box"><div class="arch-box-icon">👥</div><div class="arch-box-title">User Management</div><div class="arch-box-sub">Roles, permissions, access</div></div>
+          <div class="arch-box"><div class="arch-box-icon">📝</div><div class="arch-box-title">Audit Logger</div><div class="arch-box-sub">HIPAA-required activity records</div></div>
+          <div class="arch-box"><div class="arch-box-icon">🔌</div><div class="arch-box-title">API Layer</div><div class="arch-box-sub">Connects everything securely</div></div>
+        </div>
+      </div>
+
+      <div class="arch-arrow">↕ Encrypted Data</div>
+
+      <div class="arch-layer">
+        <div class="arch-layer-label">🗄️ Your Data — Secure & HIPAA-Eligible (AWS)</div>
+        <div class="arch-row">
+          <div class="arch-box slate"><div class="arch-box-icon">🗃️</div><div class="arch-box-title">PostgreSQL Database</div><div class="arch-box-sub">Users, assessments, outputs</div></div>
+          <div class="arch-box slate"><div class="arch-box-icon">☁️</div><div class="arch-box-title">AWS Cloud Hosting</div><div class="arch-box-sub">HIPAA-eligible infrastructure</div></div>
+          <div class="arch-box slate"><div class="arch-box-icon">🔑</div><div class="arch-box-title">Auth0 / Cognito</div><div class="arch-box-sub">Enterprise-grade identity security</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">User Experience</div>
+    <div class="section-title">What Your Users Experience Step by Step</div>
+    <p class="section-intro">Every person who comes to your app goes through a clear, guided journey — from landing on your page to walking away with a trusted answer based entirely on your expertise.</p>
+
+    <div class="flow-steps">
+      <div class="flow-step">
+        <div class="flow-step-num">1</div>
+        <div class="flow-step-title">They Find You</div>
+        <div class="flow-step-sub">Land on your app, understand the value immediately</div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-step-num">2</div>
+        <div class="flow-step-title">Secure Sign Up</div>
+        <div class="flow-step-sub">Create an account with MFA protection</div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-step-num">3</div>
+        <div class="flow-step-title">Tell Us About Them</div>
+        <div class="flow-step-sub">Their situation, type, and goals</div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-step-num">4</div>
+        <div class="flow-step-title">Guided Assessment</div>
+        <div class="flow-step-sub">Your framework as smart step-by-step questions</div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-step-num">5</div>
+        <div class="flow-step-title">Your Engine Runs</div>
+        <div class="flow-step-sub">Your rules process their answers instantly</div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-step-num">6</div>
+        <div class="flow-step-title">Trusted Results</div>
+        <div class="flow-step-sub">Clear recommendations they can act on</div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-step-num">7</div>
+        <div class="flow-step-title">Save & Return</div>
+        <div class="flow-step-sub">Results saved to their profile</div>
+      </div>
+    </div>
+
+    <div class="note note-teal" style="margin-top:20px;">
+      <strong>💡 The Guided Assessment is where your years of expertise live.</strong> Every question in that flow is built directly from your framework — translated into a sequence that leads users to the right answer every time, consistently, without you having to be in the room.
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">Security & Compliance</div>
+    <div class="section-title">How We Keep Your Users — and You — Protected</div>
+    <p class="section-intro">HIPAA compliance isn't something added at the end — it's built into the foundation from day one. Here's exactly what that means for your app and for your legal protection as the product owner.</p>
+
+    <div class="compliance-grid">
+      <div class="compliance-card">
+        <div class="compliance-icon">🔒</div>
+        <div>
+          <div class="compliance-title">Encryption Everywhere</div>
+          <div class="compliance-desc">All data in your database is encrypted at rest. All data moving between your users and the app travels over HTTPS. Nothing is ever exposed in plain text — anywhere in the system.</div>
+        </div>
+      </div>
+      <div class="compliance-card">
+        <div class="compliance-icon">📋</div>
+        <div>
+          <div class="compliance-title">Full Audit Logs</div>
+          <div class="compliance-desc">Every action taken in your app — login, assessment started, result viewed — is recorded automatically. HIPAA requires this, and it protects you legally if questions ever arise.</div>
+        </div>
+      </div>
+      <div class="compliance-card">
+        <div class="compliance-icon">🏥</div>
+        <div>
+          <div class="compliance-title">Business Associate Agreement (BAA)</div>
+          <div class="compliance-desc">AWS will sign a BAA with you — a legal requirement for apps touching Protected Health Information. We set this up before any code is written so you're covered from the very start.</div>
+        </div>
+      </div>
+      <div class="compliance-card">
+        <div class="compliance-icon">👤</div>
+        <div>
+          <div class="compliance-title">Access Controls & MFA</div>
+          <div class="compliance-desc">Every user only sees their own data. You have a separate admin view. Multi-factor authentication required for all accounts. Nobody gets in who shouldn't be there.</div>
+        </div>
+      </div>
+      <div class="compliance-card">
+        <div class="compliance-icon">🔐</div>
+        <div>
+          <div class="compliance-title">Enterprise-Grade Authentication</div>
+          <div class="compliance-desc">We use Auth0 or AWS Cognito — the same identity platforms used by Fortune 500 companies. Handles session management, password resets, and brute-force protection automatically.</div>
+        </div>
+      </div>
+      <div class="compliance-card">
+        <div class="compliance-icon">⚖️</div>
+        <div>
+          <div class="compliance-title">Attorney Review Before Launch</div>
+          <div class="compliance-desc">We build to technical HIPAA standards. Before launch, we recommend a HIPAA attorney review your privacy policy and terms of service. That's your personal legal protection as the owner.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">Technology</div>
+    <div class="section-title">What We're Building It With — and Why</div>
+    <p class="section-intro">Every technology choice here was made deliberately for security, reliability, and long-term maintainability. Nothing exotic, nothing that locks you in, nothing you can't hand to another developer if you ever need to.</p>
+
+    <div class="tech-grid">
+      <div class="tech-card">
+        <div class="tech-card-layer">What Your Users See</div>
+        <div class="tech-card-name">React.js + Tailwind CSS</div>
+        <div class="tech-card-why">Industry standard for web apps. Handles your multi-step assessment flow cleanly, looks polished on every device, and is easy to maintain and expand as your product grows.</div>
+      </div>
+      <div class="tech-card">
+        <div class="tech-card-layer">Your Decision Engine</div>
+        <div class="tech-card-name">Python / FastAPI</div>
+        <div class="tech-card-why">The dominant language in healthcare tech. FastAPI has strong data validation built in — critical when inputs going into your decision engine need to be completely trustworthy.</div>
+      </div>
+      <div class="tech-card">
+        <div class="tech-card-layer">Your Data</div>
+        <div class="tech-card-name">PostgreSQL</div>
+        <div class="tech-card-why">Battle-tested and reliable. Handles all your relational data — users, assessments, results, audit logs — all linked together correctly. Supports encryption at rest natively.</div>
+      </div>
+      <div class="tech-card">
+        <div class="tech-card-layer">Where It Lives</div>
+        <div class="tech-card-name">Amazon Web Services (AWS)</div>
+        <div class="tech-card-why">One of the only cloud providers that offers HIPAA-eligible infrastructure and will sign a BAA. Also scales easily as your user base grows without rebuilding anything.</div>
+      </div>
+      <div class="tech-card">
+        <div class="tech-card-layer">Login Security</div>
+        <div class="tech-card-name">Auth0 or AWS Cognito</div>
+        <div class="tech-card-why">Enterprise-grade identity management. Handles MFA, secure sessions, password resets, and role-based access. Far more secure than building a login system from scratch.</div>
+      </div>
+      <div class="tech-card">
+        <div class="tech-card-layer">Payments (If Needed)</div>
+        <div class="tech-card-name">Stripe</div>
+        <div class="tech-card-why">If your app runs on subscriptions, Stripe handles all billing, invoicing, and recurring payments cleanly. Trusted by millions of businesses worldwide.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">Project Plan</div>
+    <div class="section-title">How We Build It — Phase by Phase</div>
+    <p class="section-intro">Your project is broken into six clear phases. Nothing moves forward until you've reviewed and approved the current phase. You always know exactly what's being built, what it costs, and what you're getting before any work begins.</p>
+
+    <div class="milestone-list">
+
+      <div class="milestone-card">
+        <div class="milestone-num">1</div>
+        <div>
+          <div class="milestone-title">Discovery & Architecture</div>
+          <div class="milestone-desc">We sit down together and fully document your framework — turning your expertise into structured rules and logic a system can follow. You get wireframes of every screen and a complete technical blueprint before anything is built. This phase is what makes everything that follows accurate and efficient — no guessing, no rework later.</div>
+          <div class="milestone-deliverables">
+            <span>Your Framework Documented</span><span>Screen Wireframes</span><span>Data Model</span><span>HIPAA Compliance Plan</span>
+          </div>
+        </div>
+        <div class="milestone-price"><div class="amount">$1,500</div><div class="days">Est. 1–2 weeks</div></div>
+      </div>
+
+      <div class="milestone-card">
+        <div class="milestone-num teal">2</div>
+        <div>
+          <div class="milestone-title">Backend Foundation</div>
+          <div class="milestone-desc">The invisible infrastructure your app runs on — database, authentication, API structure, and your admin panel so you can manage content and rules yourself without needing a developer. AWS is configured with HIPAA-eligible services and the BAA is signed before any user data ever touches the system.</div>
+          <div class="milestone-deliverables">
+            <span>Database Live</span><span>Auth System</span><span>Your Admin Panel</span><span>AWS + BAA Active</span>
+          </div>
+        </div>
+        <div class="milestone-price"><div class="amount">$3,000</div><div class="days">Est. 2–3 weeks</div></div>
+      </div>
+
+      <div class="milestone-card">
+        <div class="milestone-num teal">3</div>
+        <div>
+          <div class="milestone-title">Your Decision Engine</div>
+          <div class="milestone-desc">This is the heart of your product — where your expertise lives in code. Your framework gets built into a structured decision engine that takes user answers and produces reliable, consistent, trusted outputs. Every logic path is tested and you approve it before we move on. Nothing ships that you haven't signed off on.</div>
+          <div class="milestone-deliverables">
+            <span>Decision Engine Built</span><span>Your Rule Library</span><span>Output Templates</span><span>Your Approval Required</span>
+          </div>
+        </div>
+        <div class="milestone-price"><div class="amount">$6,000</div><div class="days">Est. 3–4 weeks</div></div>
+      </div>
+
+      <div class="milestone-card">
+        <div class="milestone-num gold">4</div>
+        <div>
+          <div class="milestone-title">The Full User Interface</div>
+          <div class="milestone-desc">Everything your users see and interact with — landing page, secure login, the guided assessment wizard, results dashboard, user profiles, and saved history. Built to feel trustworthy and professional. Every screen connected to your backend and tested end-to-end on all devices.</div>
+          <div class="milestone-deliverables">
+            <span>All Screens Live</span><span>Assessment Wizard</span><span>Results Dashboard</span><span>Mobile Responsive</span>
+          </div>
+        </div>
+        <div class="milestone-price"><div class="amount">$4,500</div><div class="days">Est. 3–4 weeks</div></div>
+      </div>
+
+      <div class="milestone-card">
+        <div class="milestone-num gold">5</div>
+        <div>
+          <div class="milestone-title">HIPAA Compliance Layer</div>
+          <div class="milestone-desc">Audit logging implemented and verified, encryption confirmed throughout, full security review of the codebase, BAA documentation finalized. This milestone is what makes your app legally deployable — and what protects you as the product owner if you're ever audited.</div>
+          <div class="milestone-deliverables">
+            <span>Audit Logs Active</span><span>Encryption Verified</span><span>Security Review Complete</span><span>BAA Docs Finalized</span>
+          </div>
+        </div>
+        <div class="milestone-price"><div class="amount">$3,000</div><div class="days">Est. 1–2 weeks</div></div>
+      </div>
+
+      <div class="milestone-card">
+        <div class="milestone-num dark">6</div>
+        <div>
+          <div class="milestone-title">Testing, Launch & Handoff</div>
+          <div class="milestone-desc">Full QA across every user flow, browser, and device. A staging environment for your final review — you use the app exactly as your users will before it goes live. Production deployment and complete documentation so you fully understand and own every part of what was built.</div>
+          <div class="milestone-deliverables">
+            <span>Full QA Testing</span><span>Your Staging Review</span><span>Production Launch</span><span>Full Documentation</span>
+          </div>
+        </div>
+        <div class="milestone-price"><div class="amount">$2,000</div><div class="days">Est. 1–2 weeks</div></div>
+      </div>
+
+    </div>
+
+    <div class="total-bar">
+      <div><div class="total-bar-label">Total Investment</div></div>
+      <div style="text-align:right;">
+        <div class="total-bar-amount">$20,000</div>
+        <div class="total-bar-time">~3–6 months end to end</div>
+      </div>
+    </div>
+
+    <div class="note" style="margin-top:16px;">
+      <strong>📌 You never pay for the next phase until you've approved the current one.</strong> Every milestone has a clear deliverable. If at any point the direction needs to change, we adjust before moving forward — not after the work is already done.
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">Business Model Option</div>
+    <div class="section-title">Want to Reduce the Upfront Investment?</div>
+    <p class="section-intro">If you believe this product will generate strong recurring revenue, there's an alternative structure that reduces what you pay upfront in exchange for a small share of monthly revenue once the app is live and earning.</p>
+
+    <div class="royalty-box">
+      <div>
+        <h3>Lower upfront.<br>We share in your success.</h3>
+        <p>Instead of the full $20,000 upfront, we agree on a reduced project fee with a small percentage of your monthly gross revenue once you launch. This aligns our incentives completely — your success is our success.</p>
+        <p style="margin-top:12px;">The revenue share has a cap — once the discounted amount has been recovered, it ends completely and you keep 100%. Everything is documented by a lawyer alongside your existing NDA so it's clean and protected for both sides.</p>
+      </div>
+      <div class="royalty-stats">
+        <div class="royalty-stat">
+          <div class="royalty-stat-label">Revenue Share Range</div>
+          <div class="royalty-stat-value">3–8%</div>
+          <div class="royalty-stat-note">of monthly gross revenue</div>
+        </div>
+        <div class="royalty-stat">
+          <div class="royalty-stat-label">Cap Structure</div>
+          <div class="royalty-stat-value">2× discount</div>
+          <div class="royalty-stat-note">share ends once fully recovered</div>
+        </div>
+        <div class="royalty-stat">
+          <div class="royalty-stat-label">Lowest Risk Entry</div>
+          <div class="royalty-stat-value">$1,500</div>
+          <div class="royalty-stat-note">start with Discovery only</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section" style="border-bottom:none;">
+    <div class="section-label">Getting Started</div>
+    <div class="section-title">The Lowest Risk Way to Begin</div>
+    <p class="section-intro">You don't have to commit to the full project today. Milestone 1 — Discovery & Architecture — is a standalone engagement at $1,500 that gives you enormous value on its own, with no obligation to continue afterward.</p>
+
+    <div class="compliance-grid">
+      <div class="compliance-card">
+        <div class="compliance-icon">📐</div>
+        <div>
+          <div class="compliance-title">Your Framework Gets Documented</div>
+          <div class="compliance-desc">For the first time, your expertise exists as a structured, written ruleset — something you can use, review, and build on regardless of what happens next.</div>
+        </div>
+      </div>
+      <div class="compliance-card">
+        <div class="compliance-icon">🗺️</div>
+        <div>
+          <div class="compliance-title">You Get a Complete Blueprint</div>
+          <div class="compliance-desc">Wireframes of every screen, a full data model, and a technical plan — concrete enough to get a second opinion from any developer if you want to compare.</div>
+        </div>
+      </div>
+      <div class="compliance-card">
+        <div class="compliance-icon">✅</div>
+        <div>
+          <div class="compliance-title">No Surprises Down the Road</div>
+          <div class="compliance-desc">Before a single line of code is written, you've seen and approved the full plan for your product. You know exactly what you're getting into.</div>
+        </div>
+      </div>
+      <div class="compliance-card">
+        <div class="compliance-icon">🔓</div>
+        <div>
+          <div class="compliance-title">No Obligation to Continue</div>
+          <div class="compliance-desc">If after Milestone 1 you want to pause, change direction, or take the blueprint elsewhere — that's your right. You paid for it, you own it completely.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="note note-teal" style="margin-top:24px; font-size:15px;">
+      <strong>Recommended first step: Milestone 1 — Discovery & Architecture at $1,500.</strong> One to two weeks of focused work that turns your expertise into a documented, structured plan and gives you a blueprint you own outright — whether you move forward with us or not.
+    </div>
+  </div>
+
+</div>
+
+<div class="footer">
+  <strong>Prepared by Cory Schmaltz — Rangeview Marketing</strong> &nbsp;|&nbsp; cory@rangeviewmarketing.com &nbsp;|&nbsp; +1 (720) 308-6841 &nbsp;|&nbsp; Confidential
+</div>
+
+</body>
+</html>
